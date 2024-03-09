@@ -1,0 +1,4 @@
+#Fri Mar 08 22:44:37 BRT 2024
+base.0=/home/felipe/Projetos/faculdade/abelhinha/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

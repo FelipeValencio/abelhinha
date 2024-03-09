@@ -1,0 +1,1 @@
+ /home/felipe/Projetos/faculdade/abelhinha/.dart_tool/flutter_build/956b8882213df7e0a6dc4670b29352e0/native_assets.yaml: 
