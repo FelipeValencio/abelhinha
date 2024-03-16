@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
+import 'package:step_progress_indicator/step_progress_indicator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,67 +37,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   final Map<String, String> letras = {
-    '0-1': 'r',
-    '-10': 's',
-    '-11': 't',
-    '01': 'e',
-    '10': 'n',
-    '1-1': 'o',
+    '0-1': 'R',
+    '-10': 'S',
+    '-11': 'T',
+    '01': 'E',
+    '10': 'N',
+    '1-1': 'O',
   };
 
-  final List<String> listaPalavras = [
-    "rato",
-    "terno",
-    "sono",
-    "estar",
-    "nota",
-    "terra",
-    "sena",
-    "tornar",
-    "asteroide",
-    "roteador",
-    "astro",
-    "seta",
-    "norte",
-    "seara",
-    "arte",
-    "santo",
-    "resto",
-    "roer",
-    "estorno",
-    "tronco",
-    "artesao",
-    "serra",
-    "setor",
-    "senhor",
-    "ternura",
-    "sertao",
-    "restar",
-    "naso",
-    "treno",
-    "rota",
-    "toner",
-    "sorte",
-    "antro",
-    "renas",
-    "estacao",
-    "torre",
-    "tarso",
-    "erro",
-    "arroto",
-    "ator",
-    "setenta",
-    "rente",
-    "torso",
-    "resta",
-    "atear",
-    "arto",
-    "rente",
-    "rosto",
-    "ostra"
-  ];
+  final List<String> listaPalavras = [    "ASTRONAUTA",    "ARTESANO",    "ATRAS",    "ARANHA",    "ANSEIO",    "ATENCAO",    "ARTESAO",    "RATO",    "SONATA",    "SARJETA",    "ASTEROIDE",    "TESOURO",    "ATENAS",    "ARMACAO",    "ANTENA",    "SARTANA",    "NASCENTE",    "ANTES",    "SORTE",    "ATENUAR"];
 
-  final String letraCentral = "a";
+  final String letraCentral = "A";
 
   late List<String> palavrasEncontradas = [];
 
@@ -120,7 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     else if(listaPalavras.contains(controller.text)) {
       print("PAlAVRA ENCONTRADA");
-      palavrasEncontradas.add(controller.text);
+      setState(() {
+        palavrasEncontradas.add(controller.text);
+        controller.text = "";
+      });
     } else {
       print("PAlAVRA Não está no dicionário");
     }
@@ -136,14 +90,14 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
+          score(),
           fieldText(controller),
-          const SizedBox(height: 50),
           Center(
             child: SizedBox(
               width: width * 0.8,
-              child: _buildGrid(context, controller)
+              child: buildColmeia(context, controller)
             ),
           ),
           Row(
@@ -189,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   }
 
-  Widget _buildGrid(BuildContext context, TextEditingController controller) {
+  Widget buildColmeia(BuildContext context, TextEditingController controller) {
     return InteractiveViewer(
       minScale: 0.1,
       maxScale: 4.0,
@@ -224,6 +178,57 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         }
       ),
+    );
+  }
+
+  Widget score() {
+    return Column(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                  "0"
+              ),
+              Text(
+                  "${(listaPalavras.length * 0.25).floor()}"
+              ),
+              Text(
+                  "${(listaPalavras.length * 0.5).floor()}"
+              ),
+              Text(
+                  "${(listaPalavras.length * 0.75).floor()}"
+              ),
+              Text(
+                  "${listaPalavras.length}"
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 5,),
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: StepProgressIndicator(
+            totalSteps: (listaPalavras.length / 4).floor(),
+            currentStep: (palavrasEncontradas.length / 4).floor(),
+            selectedColor: Colors.yellow,
+            unselectedColor: Colors.grey,
+
+          ),
+        ),
+        const SizedBox(height: 10,),
+        Center(
+          child: Text(
+            "Palavras encontradas: ${palavrasEncontradas.length}",
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20
+            ),
+          )
+        )
+      ],
     );
   }
 
