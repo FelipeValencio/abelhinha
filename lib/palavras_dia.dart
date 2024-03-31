@@ -88,8 +88,6 @@ class PalavrasDia {
     List<String> letters = letras.split('');
     String specificLetter = letras[0];
 
-    //TODO: TESTAR ESSA LOGICA
-
     List<String> filteredWords = words.where((word) {
       // Check if the word contains only letters from the list
       if (!word.split('').every((char) => letters.contains(char))) {
@@ -119,17 +117,18 @@ class PalavrasDia {
     List<String> letters = letras.split('');
     String specificLetter = letras[0];
 
-    List<String> filteredWords = pangrams.where((word) {
-      // Check if the word contains the specific letter
-      if (!word.contains(specificLetter)) return false;
-
-      // Check if the word contains at least one other letter from the list
-      for (String letter in letters) {
-        if (letter != specificLetter && word.contains(letter)) {
-          return true;
-        }
+    List<String> filteredWords = pangrams.where((pangram) {
+      // Check if the word contains only letters from the list
+      if (!pangram.split('').every((char) => letters.contains(char))) {
+        return false;
       }
-      return false;
+
+      // Check if the word contains the specific letter
+      if (!pangram.contains(specificLetter)) {
+        return false;
+      }
+
+      return true;
     }).toList();
 
     await writeToFile("pangrams-${getCurrentDate()}.txt", filteredWords);
@@ -145,6 +144,30 @@ class PalavrasDia {
     String letras = letrasAll.elementAt(random.nextInt(letrasAll.length));
 
     await writeToFileString("letras-${getCurrentDate()}.txt", letras);
+  }
+
+  Future<int> maxScore() async {
+    if(!(await checkFileExists("pangrams-${getCurrentDate()}.txt"))) throw "Pangrams dia file not found";
+    if(!(await checkFileExists("answers-${getCurrentDate()}.txt"))) throw "Answers dia file not found";
+
+    int maxScore = 0;
+
+    List<String> answers = await readFile("answers-${getCurrentDate()}.txt");
+    List<String> pangrams = await readFile("pangrams-${getCurrentDate()}.txt");
+
+    for (String a in answers) {
+      if (a.length == 4) {
+        maxScore++;
+      } else {
+        maxScore += a.length;
+      }
+    }
+
+    for (String p in pangrams) {
+      maxScore += p.length + 7;
+    }
+
+    return maxScore;
   }
 
   Future<void> writeToFile(String fileName, List<String> text) async {

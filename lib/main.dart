@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:abelhinha/palavras_dia.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +19,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Jogo da abelinha',
+      debugShowCheckedModeBanner: false,
+      color: Colors.amber,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black54),
         useMaterial3: true,
@@ -41,6 +44,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  static const double MAX_SCORE_PERC = 0.2;
+
   late final Future futureController;
 
   late List<String> pangrams;
@@ -62,9 +67,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late int letrasEncontradas = 0;
 
+  late int maxScore = 0;
+
+  int currentScore = 0;
+
   Future<int> prepararJogo() async {
 
     String? letrasDia = await PalavrasDia().getLettersForDay();
+
+    maxScore = await PalavrasDia().maxScore();
 
     letraCentral = letrasDia![0];
 
@@ -105,27 +116,77 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void validar() {
-    if(controller.text.length < 4) {
-      print("Palavra muito curta!");
+
+    String palavra = controller.text.toLowerCase();
+
+    if(palavra.length < 4) {
+      mostrarMensagem("Palavra muito curta");
       return;
     }
 
-    if(palavrasEncontradas.contains(controller.text)) {
-      print("PAlAVRA já encontrada!");
+    if(palavrasEncontradas.contains(palavra)) {
+      mostrarMensagem("Palavra já encontrada!");
       return;
     }
 
-    if(answers.contains(controller.text)) {
-      print("PAlAVRA ENCONTRADA");
+    if(answers.contains(palavra) || pangrams.contains(palavra)) {
       setState(() {
-        palavrasEncontradas.add(controller.text);
+        int pontoGanho = pontoPorPalavra(palavra);
+        if(pangrams.contains(palavra)) {
+          mostrarMensagem("Pangram!!! +$pontoGanho");
+        } else {
+          mostrarMensagem("Palavra encontrada! +$pontoGanho");
+        }
+        palavrasEncontradas.add(palavra);
+        currentScore += pontoGanho;
         controller.text = "";
       });
       return;
     }
 
-    print("PAlAVRA Não está no dicionário");
+    mostrarMensagem("Palavra não existe :(");
 
+  }
+
+  int pontoPorPalavra(String word) {
+    if (word.length == 4) return 1;
+    if (pangrams.contains(word)) return word.length + 7;
+    return word.length;
+  }
+
+  void mostrarMensagem(String mensagem, {int duracao=1500}) {
+    final snackBar = SnackBar(
+      content: Text(
+        mensagem,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold
+        ),
+      ),
+      duration: Duration(milliseconds: duracao),
+      backgroundColor: Colors.yellow,
+      behavior: SnackBarBehavior.floating,
+      dismissDirection: DismissDirection.up,
+      margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150,
+          left: 50,
+          right: 50),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  readFile(String fileName) async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File('${directory.path}/$fileName');
+    return await file.readAsLines();
+  }
+
+  String getCurrentDate() {
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    return formattedDate;
   }
 
   @override
@@ -146,34 +207,39 @@ class _MyHomePageState extends State<MyHomePage> {
             print(snapshot.stackTrace);
             return Text('Error: ${snapshot.error}');
           } else if (snapshot.data != null) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                score(),
-                fieldText(controller),
-                Center(
-                  child: SizedBox(
-                      width: width * 0.8,
-                      child: buildColmeia(context, controller)
-                  ),
+            return Stack(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    score(),
+                    fieldText(controller),
+                    Center(
+                      child: SizedBox(
+                          width: width * 0.8,
+                          child: buildColmeia(context, controller)
+                      ),
+                    ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete, size: 50,),
+                            onPressed: () => controller.text = "",
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.refresh, size: 50,),
+                            onPressed: rotacionar,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.send, size: 50,),
+                            onPressed: validar,
+                          ),
+                        ]
+                    )
+                  ],
                 ),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.delete, size: 50,),
-                        onPressed: () => controller.text = "",
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.refresh, size: 50,),
-                        onPressed: rotacionar,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send, size: 50,),
-                        onPressed: validar,
-                      ),
-                    ]
-                )
+                buildListaPalavrasEncontradas(),
               ],
             );
           }
@@ -223,7 +289,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(5.0), // Adjust the padding as needed
               child: InkWell(
                 onTap: () {
-                  controller.text = controller.text + letra;
+                  controller.text = controller.text + letra.toUpperCase();
                 },
                 highlightColor: Colors.transparent,
                 child: Center(
@@ -251,20 +317,18 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                  "0"
+              const Text("0"),
+              Text(
+                  "${(maxScore * MAX_SCORE_PERC  * 1/4).floor()}"
               ),
               Text(
-                  "${(answers.length * 0.25).floor()}"
+                  "${(maxScore * MAX_SCORE_PERC  / 2).floor()}"
               ),
               Text(
-                  "${(answers.length * 0.5).floor()}"
+                  "${(maxScore * MAX_SCORE_PERC  * 3/4).floor()}"
               ),
               Text(
-                  "${(answers.length * 0.75).floor()}"
-              ),
-              Text(
-                  "${answers.length}"
+                  "${(maxScore * MAX_SCORE_PERC).floor()}"
               ),
             ],
           ),
@@ -273,8 +337,8 @@ class _MyHomePageState extends State<MyHomePage> {
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           child: StepProgressIndicator(
-            totalSteps: (answers.length / 100000).floor(),
-            currentStep: palavrasEncontradas.length,
+            totalSteps: 10,
+            currentStep: ((currentScore * 10) / (maxScore * MAX_SCORE_PERC)).floor(),
             size: 20,
             selectedColor: Colors.yellow,
             unselectedColor: Colors.grey,
@@ -283,10 +347,10 @@ class _MyHomePageState extends State<MyHomePage> {
         const SizedBox(height: 10,),
         Center(
           child: Text(
-            "Palavras encontradas: ${palavrasEncontradas.length}",
+            "Pontuação atual: $currentScore",
             style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20
+              fontWeight: FontWeight.bold,
+              fontSize: 20
             ),
           )
         )
@@ -294,16 +358,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  readFile(String fileName) async {
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final File file = File('${directory.path}/$fileName');
-    return await file.readAsLines();
+  Widget buildListaPalavrasEncontradas() {
+    return ExpansionTile(
+      title: const Text(
+        'Palavras encontradas',
+        style: TextStyle(
+          color: Colors.amber,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
+      backgroundColor: Colors.white,
+      iconColor: Colors.amber,
+      textColor: Colors.amber,
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: GridView.count(
+            crossAxisCount: 3, // Two columns
+            mainAxisSpacing: 0.0, // Adjust vertical spacing
+            crossAxisSpacing: 0.0, // Adjust horizontal spacing
+            childAspectRatio: 2.5, // Adjust aspect ratio
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            children: palavrasEncontradas.map((item) {
+              return Text(
+                item.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
   }
 
-  String getCurrentDate() {
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
-    return formattedDate;
-  }
 
 }
