@@ -52,10 +52,25 @@ class _CadastroPageState extends State<CadastroPage> {
         pontuacaoDataJSON: '{"${getCurrentDate()}": 0}', logged: 0);
     DBProvider.db.novoUsuario(usuario);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cadastro concluído!'),
+          content: const Text('Utilize as credenciais para logar no app!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
+
     return;
 
   }
@@ -70,6 +85,8 @@ class _CadastroPageState extends State<CadastroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(automaticallyImplyLeading: true,),
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

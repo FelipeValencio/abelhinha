@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -98,35 +98,43 @@ class _LoginPageState extends State<LoginPage> {
               'assets/login.png',
               height: 150,
             ),
-            SizedBox(height: 30.0),
+            const SizedBox(height: 30.0),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Nome de usuário',
-                prefixIcon: Icon(Icons.person),
+                prefixIcon: const Icon(Icons.person),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Senha',
-                prefixIcon: Icon(Icons.lock),
+                prefixIcon: const Icon(Icons.lock),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 30.0),
+            const SizedBox(height: 30.0),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _login,
-                child: Text('Login'),
+                child: const Text('Login'),
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const CadastroPage())),
+                child: const Text('Quero me cadastrar!'),
               ),
             ),
           ],

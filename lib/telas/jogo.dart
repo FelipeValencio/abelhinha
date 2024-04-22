@@ -64,7 +64,7 @@ class _JogoState extends State<Jogo> {
 
     letraCentral = letrasDia![0];
 
-    currentScore = usuario.pontuacaoData[getCurrentDate()];
+    currentScore = usuario.pontuacaoData[getCurrentDate()] ?? 0;
 
     if(await checkFileExists('${usuario.nome}-${getCurrentDate()}'
         '-palavrasEncontradas.txt')) {
@@ -195,7 +195,7 @@ class _JogoState extends State<Jogo> {
     final Directory directory = await getApplicationDocumentsDirectory();
     final File file = File('${directory.path}/${usuario.nome}-${getCurrentDate()}'
         '-palavrasEncontradas.txt');
-    await file.writeAsString('$text\n');
+    await file.writeAsString('$text\n', mode: FileMode.append);
   }
 
   readFile(String fileName) async {
@@ -229,7 +229,7 @@ class _JogoState extends State<Jogo> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
     return;
   }
@@ -238,88 +238,99 @@ class _JogoState extends State<Jogo> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Jogo Da Abelhinha"),
-        actions: [
-          IconButton(
-            onPressed: ()=>{
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Sair do aplicativo'),
-                    content: const Text('Tem certeza que deseja fazer o logout?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => deslogar(),
-                        child: const Text('Sair'),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          return;
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.amber,
+          title: const Text("Jogo Da Abelhinha"),
+          actions: [
+            IconButton(
+              onPressed: ()=>{
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Sair do aplicativo'),
+                      content: const Text('Tem certeza que deseja fazer o logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => deslogar(),
+                          child: const Text('Sair'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancelar'),
+                        ),
+                      ],
+                    );
+                  },
+                )
+              },
+              icon: const Icon(Icons.logout)
+            )
+          ],
+        ),
+        body: FutureBuilder(
+          future: futureController,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              print(snapshot.stackTrace);
+              return Text('Error: ${snapshot.error}');
+            } else if (snapshot.data != null) {
+              return Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      ultimasPalavrasEncontradas(),
+                      score(),
+                      fieldText(controller),
+                      Center(
+                        child: SizedBox(
+                            width: width * 0.7
+                            ,
+                            child: buildColmeia(context, controller)
+                        ),
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancelar'),
-                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 50,),
+                              onPressed: () => controller.text = "",
+                              tooltip: "Excluir",
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.refresh, size: 50,),
+                              onPressed: rotacionar,
+                              tooltip: "Rotacionar",
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.send, size: 50,),
+                              tooltip: "Enviar",
+                              onPressed: validar,
+                            ),
+                          ]
+                      )
                     ],
-                  );
-                },
-              )
-            },
-            icon: const Icon(Icons.logout)
-          )
-        ],
-      ),
-      body: FutureBuilder(
-        future: futureController,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            print(snapshot.stackTrace);
-            return Text('Error: ${snapshot.error}');
-          } else if (snapshot.data != null) {
-            return Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    score(),
-                    fieldText(controller),
-                    Center(
-                      child: SizedBox(
-                          width: width * 0.8,
-                          child: buildColmeia(context, controller)
-                      ),
-                    ),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.delete, size: 50,),
-                            onPressed: () => controller.text = "",
-                            tooltip: "Excluir",
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.refresh, size: 50,),
-                            onPressed: rotacionar,
-                            tooltip: "Rotacionar",
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.send, size: 50,),
-                            tooltip: "Enviar",
-                            onPressed: validar,
-                          ),
-                        ]
-                    )
-                  ],
-                ),
-                buildListaPalavrasEncontradas(),
-              ],
-            );
-          }
-
-          return const Center(child: CircularProgressIndicator());
-        },
+                  ),
+                  buildListaPalavrasEncontradas(),
+                ],
+              );
+            }
+      
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }
@@ -465,6 +476,35 @@ class _JogoState extends State<Jogo> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget ultimasPalavrasEncontradas() {
+    List<String> reversedList = palavrasEncontradas.reversed.toList();
+
+    return Container(
+      alignment: Alignment.center,
+      height: 50,
+      width: MediaQuery.of(context).size.height * 0.8,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        children: List.generate(palavrasEncontradas.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0), // Adjust spacing between list items
+              child: Text(
+                reversedList[index].toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 15,
+
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
