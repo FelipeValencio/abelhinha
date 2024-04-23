@@ -63,6 +63,18 @@ class DBProvider {
     return res.isNotEmpty ? Usuario.fromJson(res.first) : null;
   }
 
+  Future<List<Usuario>?> getAllUsuario() async {
+    final db = await database;
+    var res = await db.query("Usuario");
+    List<Usuario> usuarios = [];
+
+    for (var r in res) {
+      usuarios.add(Usuario.fromJson(r));
+    }
+
+    return usuarios;
+  }
+
   Future<int> updateUsuario(Usuario usuario) async {
     final db = await database;
     var res = await db.update("Usuario", usuario.toJsonDB(),

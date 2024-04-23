@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:abelhinha/model/usuario.dart';
 import 'package:abelhinha/service/palavras_dia.dart';
+import 'package:abelhinha/telas/adminPage.dart';
 import 'package:abelhinha/telas/login.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
@@ -251,6 +252,11 @@ class _JogoState extends State<Jogo> {
           backgroundColor: Colors.amber,
           title: const Text("Jogo Da Abelhinha"),
           actions: [
+            usuario.nome=="admin" ? IconButton(
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const AdminPage())),
+                icon: const Icon(Icons.admin_panel_settings)
+            ) : const SizedBox(),
             IconButton(
               onPressed: ()=>{
                 showDialog(
