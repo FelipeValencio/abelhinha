@@ -82,6 +82,28 @@ class DBProvider {
     return res;
   }
 
+  Future<int> updateUsuarioNome(Usuario usuario, String nome) async {
+    final db = await database;
+    var res = await db.rawUpdate('''
+      UPDATE Usuario 
+      SET nome = ?
+      WHERE nome = ?
+      ''',
+      [nome, usuario.nome]);
+    return res;
+  }
+
+  Future<int> updateUsuarioSenha(Usuario usuario, String senha) async {
+    final db = await database;
+    var res = await db.rawUpdate('''
+      UPDATE Usuario 
+      SET senha = ?
+      WHERE nome = ?
+      ''',
+        [senha, usuario.nome]);
+    return res;
+  }
+
   Future<int> deleteUsuario() async {
     final db = await database;
     var res = await db.rawDelete("DELETE FROM Usuario");

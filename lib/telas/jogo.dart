@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:abelhinha/model/usuario.dart';
@@ -252,6 +253,10 @@ class _JogoState extends State<Jogo> {
           backgroundColor: Colors.amber,
           title: const Text("Jogo Da Abelhinha"),
           actions: [
+            IconButton(
+                onPressed: () => buildPontuacoesPassadas(),
+                icon: const Icon(Icons.history)
+            ),
             usuario.nome=="admin" ? IconButton(
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const AdminPage())),
@@ -302,8 +307,7 @@ class _JogoState extends State<Jogo> {
                       fieldText(controller),
                       Center(
                         child: SizedBox(
-                            width: width * 0.7
-                            ,
+                            width: width * 0.7,
                             child: buildColmeia(context, controller)
                         ),
                       ),
@@ -329,7 +333,7 @@ class _JogoState extends State<Jogo> {
                       )
                     ],
                   ),
-                  buildListaPalavrasEncontradas(),
+                  buildListaPalavrasEncontradas()
                 ],
               );
             }
@@ -464,7 +468,7 @@ class _JogoState extends State<Jogo> {
       textColor: Colors.amber,
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.8,
+          height: MediaQuery.of(context).size.height * 0.7,
           child: GridView.count(
             crossAxisCount: 3, // Two columns
             mainAxisSpacing: 0.0, // Adjust vertical spacing
@@ -491,7 +495,7 @@ class _JogoState extends State<Jogo> {
     return Container(
       alignment: Alignment.center,
       height: 50,
-      width: MediaQuery.of(context).size.height * 0.8,
+      width: MediaQuery.of(context).size.width * 0.8,
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         clipBehavior: Clip.none,
@@ -504,7 +508,6 @@ class _JogoState extends State<Jogo> {
                 reversedList[index].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 15,
-
                 ),
               ),
             );
@@ -512,5 +515,97 @@ class _JogoState extends State<Jogo> {
         ),
       ),
     );
+  }
+
+  void buildPontuacoesPassadas() {
+    Map<String, dynamic> pontos = reverseMapOrder(usuario.pontuacaoData);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: SizedBox(
+            height: (150 * pontos.length).ceilToDouble(),
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: Column(
+              children: [
+                const Text(
+                  'Suas pontuações',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: pontos.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              convertDateFormat(pontos.entries.elementAt(index).key),
+                              style: const TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                            Text(
+                              "${pontos.entries.elementAt(index).value.toString()} pontos",
+                              style: const TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 10,),
+                      ],
+                    );
+                  }
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    );
+    return;
+  }
+
+  Map<String, int> reverseMapOrder(Map<String, dynamic> originalMap) {
+    // Create a LinkedHashMap to preserve insertion order
+    LinkedHashMap<String, int> reversedMap = LinkedHashMap.from(originalMap);
+
+    // Reverse the order of entries in the LinkedHashMap
+    List<MapEntry<String, int>> entries = reversedMap.entries.toList();
+    reversedMap.clear();
+
+    for (int i = entries.length - 1; i >= 0; i--) {
+      reversedMap[entries[i].key] = entries[i].value;
+    }
+
+    return reversedMap;
+  }
+
+  String convertDateFormat(String inputDate) {
+    // Split the input date string by "-"
+    List<String> parts = inputDate.split('-');
+
+    // Extract year, month, and day from the parts
+    String year = parts[0];
+    String month = parts[1];
+    String day = parts[2];
+
+    // Create the formatted date string in the new format "dd-MM-yyyy"
+    String formattedDate = '$day-$month-$year';
+
+    return formattedDate;
   }
 }
