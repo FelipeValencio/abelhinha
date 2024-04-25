@@ -66,7 +66,16 @@ class _JogoState extends State<Jogo> {
 
     letraCentral = letrasDia![0];
 
-    currentScore = usuario.pontuacaoData[getCurrentDate()] ?? 0;
+    if(usuario.pontuacaoData[getCurrentDate()] == null) {
+      currentScore = 0;
+
+      usuario.pontuacaoData.addAll({getCurrentDate(): 0});
+
+      DBProvider.db.updateUsuario(usuario);
+
+    } else {
+      currentScore = usuario.pontuacaoData[getCurrentDate()];
+    }
 
     if(await checkFileExists('${usuario.nome}-${getCurrentDate()}'
         '-palavrasEncontradas.txt')) {
@@ -144,6 +153,7 @@ class _JogoState extends State<Jogo> {
         currentScore += pontoGanho;
         controller.text = "";
         updatePontuacaoDB(currentScore);
+        print(currentScore);
       });
       return;
     }
