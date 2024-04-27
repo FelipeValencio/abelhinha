@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:abelhinha/model/usuario.dart';
 import 'package:abelhinha/service/palavras_dia.dart';
-import 'package:abelhinha/telas/adminPage.dart';
+import 'package:abelhinha/telas/admin_page.dart';
 import 'package:abelhinha/telas/login.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
@@ -153,7 +153,6 @@ class _JogoState extends State<Jogo> {
         currentScore += pontoGanho;
         controller.text = "";
         updatePontuacaoDB(currentScore);
-        print(currentScore);
       });
       return;
     }
@@ -424,16 +423,24 @@ class _JogoState extends State<Jogo> {
             children: [
               const Text("0"),
               Text(
-                  "${(maxScore * maxScorePerc  * 1/4).floor()}"
+                "${(maxScore * maxScorePerc  * 1/4).floor()}"
+                "Bom início",
+                style: TextStyle(
+                  fontWeight: (currentScore >= (maxScore * maxScorePerc  * 1/4).floor()) && (currentScore < (maxScore * maxScorePerc / 2).floor())
+                      ? FontWeight.bold : FontWeight.normal
+                ),
               ),
               Text(
                   "${(maxScore * maxScorePerc  / 2).floor()}"
+                  "Bom"
               ),
               Text(
                   "${(maxScore * maxScorePerc  * 3/4).floor()}"
+                  "Incrível!"
               ),
               Text(
                   "${(maxScore * maxScorePerc).floor()}"
+                  "Gênio!"
               ),
             ],
           ),

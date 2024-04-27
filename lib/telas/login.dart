@@ -5,7 +5,6 @@ import 'package:abelhinha/telas/cadastro.dart';
 import 'package:abelhinha/telas/jogo.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../model/usuario.dart';
 

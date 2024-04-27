@@ -1,10 +1,8 @@
 import 'package:abelhinha/model/usuario.dart';
 import 'package:abelhinha/telas/login.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'service/bloc.dart';
-import 'service/database.dart';
 import 'telas/jogo.dart';
 
 void main() {

@@ -39,7 +39,6 @@ class _AdminPageState extends State<AdminPage> {
             print(snapshot.stackTrace);
             return Text('Error: ${snapshot.error}');
           } else if (snapshot.data != null) {
-            print("data not null");
             return listaUsuarios(snapshot.data);
           }
           return Text('Error: ${snapshot.error}');
