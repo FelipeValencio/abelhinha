@@ -5,6 +5,7 @@ import 'package:abelhinha/model/usuario.dart';
 import 'package:abelhinha/service/palavras_dia.dart';
 import 'package:abelhinha/telas/admin_page.dart';
 import 'package:abelhinha/telas/login.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +30,7 @@ class _JogoState extends State<Jogo> {
 
   final Usuario usuario;
 
-  static const double maxScorePerc = 0.07;
+  final List<String> levelLabels = ["Iniciante", "Bom início", "Avançando", "Bom", "Muito bom", "Demais!", "Incrível!", "Sensacional!", "Gênio!"];
 
   late final Future futureController;
 
@@ -50,6 +51,10 @@ class _JogoState extends State<Jogo> {
 
   late List<String> palavrasEncontradas = [];
 
+  late List<int> levels = [];
+
+  late int currentLevel = 0;
+
   late int letrasEncontradas = 0;
 
   late int maxScore = 0;
@@ -59,10 +64,11 @@ class _JogoState extends State<Jogo> {
   _JogoState(this.usuario);
 
   Future<int> prepararJogo() async {
-
-    String? letrasDia = await PalavrasDia().getLettersForDay();
+   String? letrasDia = await PalavrasDia().getLettersForDay();
 
     maxScore = await PalavrasDia().maxScore();
+
+    levels = getScoreLevels();
 
     letraCentral = letrasDia![0];
 
@@ -99,6 +105,25 @@ class _JogoState extends State<Jogo> {
 
     return 1;
 
+  }
+
+  List<int> getScoreLevels() {
+    List<int> levels = [
+      0,
+      5,
+      (maxScore * 0.05).floor(),
+      (maxScore * 0.1).floor(),
+      (maxScore * 0.15).floor(),
+      (maxScore * 0.2).floor(),
+      (maxScore * 0.25).floor(),
+      (maxScore * 0.3).floor(),
+      (maxScore * 0.35).floor()];
+
+    levels.sort();
+
+    print(levels);
+
+    return levels;
   }
 
   @override
@@ -414,60 +439,94 @@ class _JogoState extends State<Jogo> {
   }
 
   Widget score() {
-    return Column(
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("0"),
-              Text(
-                "${(maxScore * maxScorePerc  * 1/4).floor()}"
-                "Bom início",
-                style: TextStyle(
-                  fontWeight: (currentScore >= (maxScore * maxScorePerc  * 1/4).floor()) && (currentScore < (maxScore * maxScorePerc / 2).floor())
-                      ? FontWeight.bold : FontWeight.normal
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            getLevelDescricao(),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold
+            ),
+          ),
+          const SizedBox(width: 5,),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.75,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: Divider(thickness: 5,),
                 ),
-              ),
-              Text(
-                  "${(maxScore * maxScorePerc  / 2).floor()}"
-                  "Bom"
-              ),
-              Text(
-                  "${(maxScore * maxScorePerc  * 3/4).floor()}"
-                  "Incrível!"
-              ),
-              Text(
-                  "${(maxScore * maxScorePerc).floor()}"
-                  "Gênio!"
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 5,),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: StepProgressIndicator(
-            totalSteps: 10,
-            currentStep: ((currentScore * 10) / (maxScore * maxScorePerc)).floor(),
-            size: 20,
-            selectedColor: Colors.yellow,
-            unselectedColor: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 10,),
-        Center(
-            child: Text(
-              "Pontuação atual: $currentScore",
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20
-              ),
+                StepProgressIndicator(
+                  totalSteps: levels.length,
+                  currentStep: currentLevel + 1,
+                  size: 30,
+                  selectedColor: Colors.yellow,
+                  unselectedColor: Colors.grey,
+                  onTap: (int l) => buildLevelsDia,
+                  customStep: (index, color, _) => currentLevel == index
+                  ? Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      currentScore.toString(),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                  )
+                  : Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    ),
+                    alignment: Alignment.center,
+                  )
+                ),
+              ],
             )
-        )
-      ],
+          ),
+        ],
+      ),
     );
+  }
+
+  String getLevelDescricao() {
+    if(currentScore < levels[1]) {
+      currentLevel = 0;
+      return "Iniciante";
+    } else if(currentScore >= levels[1] && currentScore < levels[2]) {
+      currentLevel = 1;
+      return "Bom início";
+    } else if(currentScore >= levels[2] && currentScore < levels[3]) {
+      currentLevel = 2;
+      return "Avançando";
+    } else if(currentScore >= levels[3] && currentScore < levels[4]) {
+      currentLevel = 3;
+      return "Bom";
+    } else if(currentScore >= levels[4] && currentScore < levels[5]) {
+      currentLevel = 4;
+      return "Muito bom";
+    } else if(currentScore >= levels[5] && currentScore < levels[6]) {
+      currentLevel = 5;
+      return "Demais!";
+    } else if(currentScore >= levels[6] && currentScore < levels[7]) {
+      currentLevel = 6;
+      return "Incrível!";
+    } else if(currentScore >= levels[7] && currentScore < levels[8]) {
+      currentLevel = 7;
+      return "Sensacional!";
+    } else if(currentScore >= levels[8]) {
+      currentLevel = 8;
+      return "Gênio!";
+    }
+    return "Iniciante";
   }
 
   Widget buildListaPalavrasEncontradas() {
@@ -534,15 +593,135 @@ class _JogoState extends State<Jogo> {
     );
   }
 
+  void buildLevelsDia() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: Container(
+              height:  MediaQuery.of(context).size.height * 0.8,
+              width: MediaQuery.of(context).size.width * 0.9,
+              padding: const EdgeInsets.all(8),
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Níveis',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        Text(
+                          'Os níveis são calculados com base na quantidade '
+                              'máxima de pontos possível com as letras do dia',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                  ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: levelLabels.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 40, bottom: 8, right: 8, top: 8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                levelLabels[index],
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
+                        );
+                      }
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.only(left: 17),
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: const VerticalDivider(thickness: 5,),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: StepProgressIndicator(
+                      totalSteps: levels.length,
+                      currentStep: currentLevel + 1,
+                      size: 50,
+                      direction: Axis.vertical,
+                      selectedColor: Colors.yellow,
+                      unselectedColor: Colors.grey,
+                      customStep: (index, color, _) => currentLevel == index
+                      ? Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          levels[index].toString(),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      )
+                      : Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          levels[index].toString(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white
+                          ),
+                        ),
+                      )
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+    );
+    return;
+  }
+
   void buildPontuacoesPassadas() {
     Map<String, dynamic> pontos = reverseMapOrder(usuario.pontuacaoData);
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          child: SizedBox(
+          child: Container(
             height: (150 * pontos.length).ceilToDouble(),
             width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(8),
             child: Column(
               children: [
                 const Text(
