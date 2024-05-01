@@ -64,7 +64,7 @@ class _JogoState extends State<Jogo> {
   _JogoState(this.usuario);
 
   Future<int> prepararJogo() async {
-   String? letrasDia = await PalavrasDia().getLettersForDay();
+    String? letrasDia = await PalavrasDia().getLettersForDay();
 
     maxScore = await PalavrasDia().maxScore();
 
@@ -108,20 +108,24 @@ class _JogoState extends State<Jogo> {
   }
 
   List<int> getScoreLevels() {
-    List<int> levels = [
-      0,
-      5,
-      (maxScore * 0.05).floor(),
-      (maxScore * 0.1).floor(),
-      (maxScore * 0.15).floor(),
-      (maxScore * 0.2).floor(),
-      (maxScore * 0.25).floor(),
-      (maxScore * 0.3).floor(),
-      (maxScore * 0.35).floor()];
+    List<int> levels = [];
+
+    if(((maxScore * 0.35).floor()) > 500) {
+      levels = [0, 5, 25, 50, 75, 100, 125, 150, 175];
+    } else {
+      levels = [
+        0,
+        5,
+        (maxScore * 0.05).floor(),
+        (maxScore * 0.1).floor(),
+        (maxScore * 0.15).floor(),
+        (maxScore * 0.2).floor(),
+        (maxScore * 0.25).floor(),
+        (maxScore * 0.3).floor(),
+        (maxScore * 0.35).floor()];
+    }
 
     levels.sort();
-
-    print(levels);
 
     return levels;
   }
@@ -150,7 +154,7 @@ class _JogoState extends State<Jogo> {
 
     String palavra = controller.text.toLowerCase();
 
-    if(!palavra.contains(letraCentral)) {
+    if(!palavra.contains(letraCentral.toLowerCase())) {
       mostrarMensagem("Obrigatório usar a letra central!");
       return;
     }
@@ -415,7 +419,7 @@ class _JogoState extends State<Jogo> {
               padding: 2.0,
               cornerRadius: 8.0,
               child: Container(
-                padding: const EdgeInsets.all(5.0), // Adjust the padding as needed
+                padding: const EdgeInsets.all(5.0),
                 child: InkWell(
                   onTap: () {
                     controller.text = controller.text + letra.toUpperCase();
@@ -426,7 +430,7 @@ class _JogoState extends State<Jogo> {
                       letra.toUpperCase(),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 40
+                          fontSize: 32
                       ),
                     ),
                   ),
@@ -603,7 +607,7 @@ class _JogoState extends State<Jogo> {
               width: MediaQuery.of(context).size.width * 0.9,
               padding: const EdgeInsets.all(8),
               child: Stack(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(8.0),
@@ -627,47 +631,48 @@ class _JogoState extends State<Jogo> {
                             fontSize: 20,
                           ),
                         ),
-                        SizedBox(height: 20),
                       ],
                     ),
                   ),
-                  ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: levelLabels.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 40, bottom: 8, right: 8, top: 8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                levelLabels[index],
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
-                        );
-                      }
-                  ),
+                  // ListView.builder(
+                  //   shrinkWrap: true,
+                  //   padding: const EdgeInsets.only(left: 20, right: 20, top: 80),
+                  //   itemCount: levelLabels.length,
+                  //   itemBuilder: (context, index) {
+                  //     return Padding(
+                  //       padding: const EdgeInsets.only(left: 40, right: 8, top: 16),
+                  //       child: Column(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         children: [
+                  //           Text(
+                  //             levelLabels[index],
+                  //             style: const TextStyle(
+                  //               color: Colors.black,
+                  //               fontWeight: FontWeight.bold,
+                  //               fontSize: 20,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(height: 10),
+                  //         ],
+                  //       ),
+                  //     );
+                  //   }
+                  // ),
 
                   Container(
-                    padding: const EdgeInsets.only(left: 17),
+                    padding: const EdgeInsets.only(left: 17, top: 25),
                     height: MediaQuery.of(context).size.height * 0.5,
                     child: const VerticalDivider(thickness: 5,),
                   ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.5,
+                  Container(
+                    padding: const EdgeInsets.only(top: 70),
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    // alignment: Alignment.bottomLeft,
                     child: StepProgressIndicator(
                       totalSteps: levels.length,
                       currentStep: currentLevel + 1,
-                      size: 50,
+                      size: 150,
                       direction: Axis.vertical,
                       selectedColor: Colors.yellow,
                       unselectedColor: Colors.grey,
@@ -679,12 +684,32 @@ class _JogoState extends State<Jogo> {
                           borderRadius: const BorderRadius.all(Radius.circular(20)),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
-                          levels[index].toString(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                levelLabels[index],
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              const Text(
+                                "-",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              Text(
+                                "${levels[index]}",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        )
                       )
                       : Container(
                         height: 100,
@@ -693,13 +718,35 @@ class _JogoState extends State<Jogo> {
                           borderRadius: const BorderRadius.all(Radius.circular(20)),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
-                          levels[index].toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white
-                          ),
-                        ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  levelLabels[index],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: color == Colors.yellow ? Colors.black : Colors.white
+                                  ),
+                                ),
+                                Text(
+                                  "-",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                      color: color == Colors.yellow ? Colors.black : Colors.white
+                                  ),
+                                ),
+                                Text(
+                                  "${levels[index]}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                      color: color == Colors.yellow ? Colors.black : Colors.white
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
                       )
                     ),
                   ),
