@@ -89,12 +89,10 @@ class PalavrasDia {
     String specificLetter = letras[0];
 
     List<String> filteredWords = words.where((word) {
-      // Check if the word contains only letters from the list
       if (!word.split('').every((char) => letters.contains(char))) {
         return false;
       }
 
-      // Check if the word contains the specific letter
       if (!word.contains(specificLetter)) {
         return false;
       }
